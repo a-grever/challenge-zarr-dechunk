@@ -2,17 +2,16 @@ use blosc::{decompress_bytes, Clevel, Compressor, Context, ShuffleMode};
 use math::round;
 use serde::{Deserialize, Serialize};
 use serde_json::to_string_pretty;
-use serde_repr::{Serialize_repr, Deserialize_repr};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::env;
-use std::path::Path;
 use std::fs;
-use std::fs::{DirBuilder, OpenOptions, rename, remove_dir_all};
+use std::fs::{remove_dir_all, rename, DirBuilder, OpenOptions};
 use std::io::Write;
-
+use std::path::Path;
 
 #[derive(Debug, Deserialize, Clone, Serialize)]
 enum CompressionId {
-    #[serde(rename="blosc")]
+    #[serde(rename = "blosc")]
     Blosc,
 }
 
@@ -102,7 +101,8 @@ impl Iterator for ArrayChunk {
         self.current_chunk += 1;
 
         let compressed_chunk: Vec<u8> = fs::read(chunk_path).expect("Unable to read file");
-        let decompressed_chunk: Vec<u8> = unsafe { decompress_bytes::<u8>(&compressed_chunk[..]).unwrap() };
+        let decompressed_chunk: Vec<u8> =
+            unsafe { decompress_bytes::<u8>(&compressed_chunk[..]).unwrap() };
         Some(decompressed_chunk)
     }
 }
@@ -134,9 +134,11 @@ impl ArrayDechunker {
             panic!("invalid dtype str, too short")
         }
         if self.metadata.dtype.contains("M") | self.metadata.dtype.contains("m") {
-            return 8
+            return 8;
         }
-        let n_bytes: usize = self.metadata.dtype[2..].parse::<usize>().expect("unexpected format of dtype, expected int in position 3");
+        let n_bytes: usize = self.metadata.dtype[2..]
+            .parse::<usize>()
+            .expect("unexpected format of dtype, expected int in position 3");
         n_bytes
     }
 
@@ -177,7 +179,10 @@ impl ArrayDechunker {
         let path_new_array_metadata = path_new_array_dir.join(".zarray");
         let path_new_array_chunk = path_new_array_dir.join("0");
 
-        DirBuilder::new().recursive(true).create( path_new_array_dir).unwrap();
+        DirBuilder::new()
+            .recursive(true)
+            .create(path_new_array_dir)
+            .unwrap();
         let mut single_chunk_file = OpenOptions::new()
             .write(true)
             .create(true)
@@ -201,10 +206,11 @@ impl ArrayDechunker {
                     .into_bytes(),
             )
             .unwrap();
-        
+
         let path_original_array = Path::new(&self.array_path);
         rename(path_original_array, path_tmp_dir).expect("failed to rename original array folder");
-        rename(path_new_array_dir, path_original_array).expect("failed to rename new array folder to original path");
+        rename(path_new_array_dir, path_original_array)
+            .expect("failed to rename new array folder to original path");
         remove_dir_all(path_tmp_dir).expect("failed to delete tmp array folder");
     }
 }
