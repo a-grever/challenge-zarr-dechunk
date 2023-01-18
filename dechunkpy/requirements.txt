@@ -1,0 +1,4 @@
+numcodecs==0.11.0
+pydantic==1.10.4
+zarr==2.13.3
+pytest==7.2.1
